@@ -150,7 +150,7 @@ export default function ArtLabApp() {
     const [authToken, setAuthToken] = useState<string | null>(null);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [pendingSaveContext, setPendingSaveContext] = useState<any>(null);
-    const [checkoutItem, setCheckoutItem] = useState<{ id: string; name: string; price: number } | null>(null);
+    const [checkoutItem, setCheckoutItem] = useState<{ id: string; name: string; price: number | string } | null>(null);
 
     const canvasHandle = useRef<CanvasHandle>(null);
 
@@ -676,7 +676,7 @@ export default function ArtLabApp() {
                 isOpen={checkoutItem !== null}
                 onClose={() => setCheckoutItem(null)}
                 itemName={checkoutItem?.name || ''}
-                itemPrice={checkoutItem?.price || ''}
+                itemPrice={checkoutItem?.price?.toString() || ''}
                 itemId={checkoutItem?.id || ''}
                 sessionId={sessionId}
             />

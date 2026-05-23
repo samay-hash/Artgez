@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.font-cursive-logo {
+  font-family: 'Dancing Script', cursive;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+  }
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* 🌙 HIGH-FIDELITY IMMERSIVE DARK MODE CASCADING OVERRIDES (Slate Theme) */
+.dark {
+  /* Layout backgrounds */
+  background-color: #0f172a !important; /* Slate 900 */
+  color: #f8fafc !important; /* Slate 50 */
+
+  /* Card and Panel Backgrounds override */
+  .bg-white, 
+  .bg-\[\#fafaf8\], 
+  .bg-\[\#fffdf5\], 
+  .bg-gray-50, 
+  .bg-\[\#fdfbf7\],
+  div.bg-\[\#fdfbf7\] {
+    background-color: #1e293b !important; /* Slate 800 */
+    color: #f8fafc !important;
+  }
+
+  /* Specific Telemetry & Header gray sub-panels */
+  .bg-\[\#fafaf8\]\/50,
+  .bg-\[\#fafaf8\] {
+    background-color: #334155 !important; /* Slate 700 */
+  }
+
+  /* High contrast text elements */
+  .text-black, 
+  .text-\[\#2d2d2d\],
+  .text-gray-950,
+  .text-gray-900,
+  .text-gray-800,
+  .text-gray-700,
+  .text-gray-600 {
+    color: #e2e8f0 !important; /* Slate 200 */
+  }
+
+  /* Soft sub-text details */
+  .text-gray-500,
+  .text-gray-400 {
+    color: #94a3b8 !important; /* Slate 400 */
+  }
+
+  /* Fix for text that was disappearing: Ensure primary texts remain visible */
+  h1, h2, h3, h4, h5, p, span {
+    text-shadow: none !important;
+  }
+
+  /* Wobbly hand-drawn Borders override */
+  .border-black, 
+  .border-black\/10, 
+  .border-black\/8, 
+  .border-black\/5, 
+  .border-black\/15,
+  .border-r-2,
+  .border-b-2,
+  .border-t-2,
+  .border-l-2,
+  .border {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Interactive Form Fields: inputs, select, options */
+  input[type="text"], 
+  input[type="email"], 
+  input[type="tel"], 
+  select, 
+  textarea {
+    background-color: #1e293b !important; /* Slate 800 */
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  select option {
+    background-color: #0f172a !important; /* Slate 900 */
+    color: #ffffff !important;
+  }
+
+  /* Interactive Hover Elements */
+  .hover\:bg-gray-50:hover,
+  .hover\:bg-gray-100:hover {
+    background-color: #334155 !important; /* Slate 700 */
+  }
+
+  /* Maintain realistic off-white sketch canvas paper buffer color, but keep controls dark */
+  canvas.bg-\[\#fdfbf7\],
+  div.bg-\[\#fdfbf7\] > canvas {
+    background-color: #fdfbf7 !important;
+  }
+}

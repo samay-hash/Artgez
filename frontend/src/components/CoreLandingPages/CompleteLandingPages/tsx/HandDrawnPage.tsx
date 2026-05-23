@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { HandDrawnFilters, Highlight, SketchButton } from "@/src/components/CoreLandingPages/CompleteLandingPages/tsx/HandDrawn";
 import LogoArtgez from '@/src/components/artlab/LogoArtgez';
+import FounderBadge from "@/src/components/Media/TestimonialsMedia/tsx/FounderBadge";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -185,12 +186,11 @@ function SketchCanvas({ isDarkMode }: { isDarkMode: boolean }) {
                         <button
                             key={p.id}
                             onClick={() => { setActivePencil(p); setShowBuyCard(false); }}
-                            className={`relative px-3 py-1.5 text-sm font-bold border-2 transition-all ${
+                            className={`relative px-3 py-1.5 text-sm font-bold rounded-lg border-2 transition-all ${
                                 activePencil.id === p.id
                                     ? 'border-black dark:border-emerald-400 bg-black dark:bg-emerald-500 text-white dark:text-zinc-950 shadow-[3px_3px_0_#10b981]'
                                     : 'border-black/30 dark:border-white/10 bg-white dark:bg-zinc-900 text-black dark:text-zinc-300 hover:border-black dark:hover:border-white'
                             }`}
-                            style={{ filter: 'url(#rough-paper)' }}
                         >
                             {p.label}
                         </button>
@@ -205,12 +205,11 @@ function SketchCanvas({ isDarkMode }: { isDarkMode: boolean }) {
                         <button
                             key={paper.id}
                             onClick={() => setActivePaper(paper)}
-                            className={`px-3 py-1.5 text-sm font-medium border-2 transition-all ${
+                            className={`px-3 py-1.5 text-sm font-medium rounded-lg border-2 transition-all ${
                                 activePaper.id === paper.id
                                     ? 'border-black dark:border-emerald-400 bg-[#ffeb3b] dark:bg-emerald-500 text-black dark:text-zinc-950 shadow-[2px_2px_0_rgba(0,0,0,1)]'
                                     : 'border-black/20 dark:border-white/10 bg-white dark:bg-zinc-900 text-black dark:text-zinc-300 hover:border-black/60 dark:hover:border-white/40'
                             }`}
-                            style={{ filter: 'url(#rough-paper)' }}
                         >
                             {paper.label}
                         </button>
@@ -219,8 +218,7 @@ function SketchCanvas({ isDarkMode }: { isDarkMode: boolean }) {
 
                 <button
                     onClick={clearCanvas}
-                    className="ml-auto px-3 py-1.5 text-sm font-medium border-2 border-black/20 dark:border-white/10 text-black dark:text-zinc-300 hover:border-red-400 dark:hover:border-red-400/50 hover:text-red-500 transition-all"
-                    style={{ filter: 'url(#rough-paper)' }}
+                    className="ml-auto px-3 py-1.5 text-sm font-medium rounded-lg border-2 border-black/20 dark:border-white/10 text-black dark:text-zinc-300 hover:border-red-400 dark:hover:border-red-400/50 hover:text-red-500 transition-all"
                 >
                     Clear
                 </button>
@@ -249,8 +247,8 @@ function SketchCanvas({ isDarkMode }: { isDarkMode: boolean }) {
 
             {/* Canvas */}
             <div
-                className="relative overflow-hidden border-2 border-black dark:border-white/20 shadow-[6px_6px_0_rgba(0,0,0,0.8)] dark:shadow-[6px_6px_0_rgba(255,255,255,0.15)]"
-                style={{ background: paperBg, filter: 'url(#rough-paper)' }}
+                className="relative overflow-hidden rounded-xl border border-black/15 dark:border-white/10 shadow-lg"
+                style={{ background: paperBg }}
             >
                 {/* Paper texture overlay */}
                 {activePaper.grain > 0 && (
@@ -298,8 +296,7 @@ function SketchCanvas({ isDarkMode }: { isDarkMode: boolean }) {
                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="mt-4 flex items-center justify-between gap-4 border-2 border-black dark:border-emerald-400 bg-[#ffeb3b] dark:bg-emerald-500 p-4 text-black dark:text-zinc-950 shadow-[4px_4px_0_rgba(0,0,0,1)] dark:shadow-[4px_4px_0_rgba(16,185,129,0.3)]"
-                        style={{ filter: 'url(#rough-paper)' }}
+                        className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-black/10 bg-[#ffeb3b] dark:bg-emerald-500 p-4 text-black dark:text-zinc-950 shadow-lg"
                     >
                         <div>
                             <p className="font-bold">Faber-Castell {activePencil.label} Pencil</p>
@@ -332,17 +329,17 @@ function FeatureCard({ feature, index }: { feature: typeof FEATURES[0]; index: n
             whileHover={{ y: -4, rotate: (index % 2 === 0 ? 0.5 : -0.5) }}
             className="relative flex flex-col gap-4 p-7"
         >
-            <div className="absolute inset-0 border-2 border-black bg-white shadow-sm" style={{ filter: 'url(#rough-paper)' }} />
+            <div className="absolute inset-0 rounded-2xl border border-black/10 bg-white shadow-md" />
             <div
-                className="relative z-10 flex h-11 w-11 items-center justify-center border-2 border-black"
-                style={{ backgroundColor: feature.color, filter: 'url(#rough-paper)' }}
+                className="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl border border-black/10"
+                style={{ backgroundColor: feature.color }}
             >
                 {feature.icon}
             </div>
             <h3 className="relative z-10 text-lg font-bold leading-tight">{feature.title}</h3>
             <p className="relative z-10 text-sm text-gray-600 leading-relaxed">{feature.desc}</p>
             <div
-                className="absolute -bottom-2 -right-2 h-4 w-4 border-2 border-black"
+                className="absolute -bottom-2 -right-2 h-4 w-4 rounded-sm"
                 style={{ backgroundColor: feature.color }}
             />
         </motion.div>
@@ -351,7 +348,38 @@ function FeatureCard({ feature, index }: { feature: typeof FEATURES[0]; index: n
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
+const FAQItem = ({ faq, index, isOpen, toggleOpen }: { faq: {q: string, a: string}, index: number, isOpen: boolean, toggleOpen: (i: number) => void }) => {
+    return (
+        <div className={`rounded-3xl border ${isOpen ? 'border-sky-500 shadow-xl bg-sky-50/50' : 'border-black/10 bg-white hover:border-black/30 hover:shadow-md'} overflow-hidden transition-all duration-300`}>
+            <button onClick={() => toggleOpen(index)} className="w-full flex items-center justify-between p-6 sm:p-8 text-left">
+                <h4 className={`text-lg sm:text-xl font-bold tracking-tight ${isOpen ? 'text-sky-600' : 'text-black'}`}>{faq.q}</h4>
+                <div className={`flex items-center justify-center w-10 h-10 rounded-full border ${isOpen ? 'border-sky-500 bg-sky-500 text-white' : 'border-black/10 bg-gray-50 text-gray-500'} transition-all duration-300 shrink-0 ml-4`}>
+                    <ChevronDown size={20} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                </div>
+            </button>
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    >
+                        <div className="px-6 sm:px-8 pb-8 text-base text-gray-600 leading-relaxed pt-2">
+                            {faq.a}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
 export default function ArtopPage() {
+    const [openFaq, setOpenFaq] = useState<number | null>(null);
+    const toggleFaq = (index: number) => {
+        setOpenFaq(openFaq === index ? null : index);
+    };
     const { scrollYProgress } = useScroll();
     const yHero = useTransform(scrollYProgress, [0, 0.3], [0, -60]);
     const heroOpacity = useTransform(scrollYProgress, [0, 0.25], [1, 0]);
@@ -363,6 +391,14 @@ export default function ArtopPage() {
 
     return (
         <main className="relative min-h-screen w-full overflow-x-hidden bg-[#fdfbf7] font-sans text-[#2d2d2d] selection:bg-[#ffeb3b] transition-colors duration-300">
+            {/* Curtain Drop Reveal Animation */}
+            <motion.div
+                initial={{ height: '100vh' }}
+                animate={{ height: 0 }}
+                transition={{ duration: 1.2, ease: [0.85, 0, 0.15, 1], delay: 0.2 }}
+                className="fixed inset-0 z-[100] bg-black w-full origin-top"
+            />
+            
             <HandDrawnFilters />
 
             {/* Grid background */}
@@ -374,7 +410,7 @@ export default function ArtopPage() {
             />
 
             {/* ── NAVBAR ──────────────────────────────────────────────────── */}
-            <nav className="fixed top-0 z-50 flex w-full items-center justify-between px-6 py-5 backdrop-blur-sm">
+            <nav className="fixed top-0 z-50 flex w-full items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b border-black/5 shadow-sm">
                 <LogoArtgez />
                 <div className="hidden gap-8 md:flex text-sm font-semibold">
                     {[['Sketch Lab', '#lab'], ['Marketplace', '#marketplace'], ['Pricing', '#pricing']].map(([label, href]) => (
@@ -397,8 +433,7 @@ export default function ArtopPage() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
-                        className="mb-8 inline-flex items-center gap-2 rounded-full border-2 border-black bg-[#e0f2fe] px-5 py-2 text-xs font-bold uppercase tracking-widest shadow-[3px_3px_0_rgba(0,0,0,1)]"
-                        style={{ filter: 'url(#rough-paper)' }}
+                        className="mb-8 inline-flex items-center gap-2 rounded-full border border-black/20 bg-[#e0f2fe] px-5 py-2 text-xs font-bold uppercase tracking-widest shadow-sm"
                     >
                         <Sparkles size={12} /> India's First Artist Supply Simulator
                     </motion.div>
@@ -435,9 +470,16 @@ export default function ArtopPage() {
                                 Open Sketch Lab <ArrowRight size={16} />
                             </SketchButton>
                         </Link>
-                        <Link href="/app" className="flex items-center gap-2 px-6 py-4 text-sm font-semibold opacity-60 hover:opacity-100 transition-opacity">
-                            Browse Artists <ArrowRight size={14} />
-                        </Link>
+                        <a
+                            href="https://github.com/samay-hash/Artgez"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group relative flex items-center gap-2.5 rounded-full border-2 border-black/80 bg-black px-6 py-3.5 text-sm font-bold text-white transition-all duration-300 hover:bg-white hover:text-black hover:shadow-[0_0_25px_rgba(0,0,0,0.15)] active:scale-95"
+                        >
+                            <svg className="w-[18px] h-[18px] transition-transform duration-300 group-hover:rotate-[360deg]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                            Star on GitHub
+                            <Star size={14} className="text-yellow-400 transition-all duration-300 group-hover:scale-125 group-hover:text-yellow-500" />
+                        </a>
                     </motion.div>
 
                     {/* Floating stat pills */}
@@ -448,7 +490,7 @@ export default function ArtopPage() {
                         className="mt-16 flex flex-wrap justify-center gap-4"
                     >
                         {[['50+', 'Pencil Types'], ['8', 'Paper Textures'], ['Free', 'To Start']].map(([val, label]) => (
-                            <div key={label} className="flex items-center gap-2 border border-black/10 bg-white px-4 py-2 shadow-sm" style={{ filter: 'url(#rough-paper)' }}>
+                            <div key={label} className="flex items-center gap-2 rounded-xl border border-black/10 bg-white px-5 py-2.5 shadow-sm">
                                 <span className="text-lg font-black">{val}</span>
                                 <span className="text-xs font-medium text-gray-500">{label}</span>
                             </div>
@@ -474,42 +516,103 @@ export default function ArtopPage() {
                 </motion.div>
             </section>
 
-            {/* ── HOW IT WORKS ────────────────────────────────────────────── */}
-            <section className="relative z-10 bg-[#fffdf5] px-6 py-28 border-y border-black/5">
+            {/* ── HOW IT WORKS — Video Showcase ──────────────────────────── */}
+            <section className="relative z-10 bg-[#fffdf5] px-6 py-28 border-y border-black/5 overflow-hidden">
                 <div className="mx-auto max-w-6xl">
-                    <div className="mb-16 text-center">
-                        <h2 className="text-4xl font-black md:text-5xl">
+                    <div className="mb-20 text-center">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            className="mb-4 inline-flex items-center gap-2 border-2 border-black/15 bg-white/70 backdrop-blur-sm px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] rounded-full"
+                        >
+                            <Sparkles size={12} className="text-cyan-500" /> See It In Action
+                        </motion.div>
+                        <motion.h2
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            viewport={{ once: true }}
+                            className="text-4xl font-black md:text-6xl tracking-tight"
+                        >
                             How it <Highlight color="#a5f3fc">Works</Highlight>
-                        </h2>
-                        <p className="mt-4 text-gray-600 text-lg">Three steps from curiosity to confidence.</p>
+                        </motion.h2>
+                        <motion.p
+                            initial={{ opacity: 0, y: 15 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            viewport={{ once: true }}
+                            className="mt-5 text-gray-500 text-lg max-w-lg mx-auto"
+                        >
+                            Three steps from curiosity to confidence. Watch how artists use Artgez.
+                        </motion.p>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-                        {STEPS.map((step, i) => (
+                    {/* Video Cards Grid */}
+                    <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
+                        {[
+                            {
+                                num: '01',
+                                title: 'Pick Your Pencil',
+                                desc: 'Browse 50+ real pencil profiles — from feathery 4H to buttery 6B charcoal.',
+                                video: '/videos/demo1.mp4',
+                                color: '#a5f3fc',
+                                label: 'PENCIL DNA',
+                            },
+                            {
+                                num: '02',
+                                title: 'Test on Real Paper',
+                                desc: 'Switch between 8 paper textures and feel the grain difference live on canvas.',
+                                video: '/videos/demo2.mp4',
+                                color: '#bae6fd',
+                                label: 'SKETCH LAB',
+                            },
+                            {
+                                num: '03',
+                                title: 'Buy What Works',
+                                desc: 'Found your perfect combo? Buy the exact physical supplies in one click.',
+                                video: '/videos/demo3.mp4',
+                                color: '#e0f2fe',
+                                label: 'SUPPLY SHOP',
+                            },
+                        ].map((step, i) => (
                             <motion.div
                                 key={step.num}
-                                initial={{ opacity: 0, y: 40 }}
+                                initial={{ opacity: 0, y: 50 }}
                                 whileInView={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.15, duration: 0.5 }}
+                                transition={{ delay: i * 0.15, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                                 viewport={{ once: true }}
-                                className="relative flex flex-col gap-5 p-8"
+                                className="group relative flex flex-col"
                             >
-                                <div className="absolute inset-0 border-2 border-black bg-white" style={{ filter: 'url(#rough-paper)' }} />
-                                {/* Step number */}
-                                <div
-                                    className="relative z-10 inline-flex h-14 w-14 items-center justify-center border-2 border-black text-2xl font-black"
-                                    style={{ backgroundColor: step.color }}
-                                >
-                                    {step.num}
-                                </div>
-                                <h3 className="relative z-10 text-xl font-bold">{step.title}</h3>
-                                <p className="relative z-10 text-gray-600 leading-relaxed">{step.desc}</p>
-                                {/* Arrow connector */}
-                                {i < 2 && (
-                                    <div className="absolute -right-5 top-1/2 z-20 hidden -translate-y-1/2 md:block">
-                                        <ArrowRight size={20} className="opacity-30" />
+                                {/* Video Container */}
+                                <div className="relative overflow-hidden rounded-2xl border border-black/10 bg-white/50 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-500 group-hover:shadow-[0_16px_50px_rgba(0,0,0,0.12)] group-hover:scale-[1.02]">
+                                    {/* Label Badge */}
+                                    <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 rounded-full bg-black/80 backdrop-blur-md px-3 py-1.5 shadow-lg">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                        <span className="text-[9px] font-black text-white tracking-widest">{step.label}</span>
                                     </div>
-                                )}
+
+                                    {/* Step Number Badge */}
+                                    <div className="absolute top-4 left-4 z-20 flex items-center justify-center h-7 w-7 rounded border border-white/20 bg-black/40 backdrop-blur-md text-[10px] font-black text-white shadow-lg">
+                                        {step.num}
+                                    </div>
+
+                                    {/* The Video */}
+                                    <video
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
+                                        className="w-full aspect-[16/10] object-cover"
+                                        src={step.video}
+                                    />
+                                </div>
+
+                                {/* Text Content Below */}
+                                <div className="mt-5 px-1">
+                                    <h3 className="text-xl font-bold tracking-tight">{step.title}</h3>
+                                    <p className="mt-2 text-gray-500 text-sm leading-relaxed">{step.desc}</p>
+                                </div>
                             </motion.div>
                         ))}
                     </div>
@@ -583,15 +686,14 @@ export default function ArtopPage() {
                 <div className="relative w-full max-w-2xl px-6">
                     <motion.div
                         whileHover={{ rotate: 0, scale: 1.02 }}
-                        className="relative rotate-1 bg-[#e0f2fe] p-12 shadow-[6px_6px_0_rgba(0,0,0,0.8)]"
-                        style={{ filter: 'url(#rough-paper)' }}
+                        className="relative rotate-1 bg-[#e0f2fe] rounded-3xl p-12 shadow-lg border border-black/5"
                     >
                         <div className="absolute -top-3 left-1/2 h-6 w-6 -translate-x-1/2 rounded-full bg-red-500 border border-black/20 shadow-sm" />
                         <div className="mb-4 flex gap-1">
                             {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="black" />)}
                         </div>
                         <p className="font-serif text-2xl italic leading-relaxed text-black/80">
-                            "I wasted ₹2000 buying the wrong charcoal pencils. Artgez ka Sketch Lab hota toh pehle try kar leta — kabhi nahi khareedta woh."
+                            "I wasted ₹2000 on the wrong charcoal pencils. If Artgez's Sketch Lab had existed back then, I would have tried them digitally first — and saved myself from a terrible mistake."
                         </p>
                         <div className="mt-8 flex items-center gap-4">
                             <div className="h-12 w-12 rounded-full bg-black/10 border border-black/20 flex items-center justify-center font-bold text-sm">RA</div>
@@ -618,8 +720,7 @@ export default function ArtopPage() {
                         {/* Free */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
-                            className="relative border-2 border-black bg-white p-10 text-center"
-                            style={{ filter: 'url(#rough-paper)' }}
+                            className="relative rounded-3xl border border-black/10 bg-white p-10 text-center shadow-md"
                         >
                             <h3 className="text-xl font-bold uppercase tracking-wide">Free Sketch</h3>
                             <div className="my-6 text-6xl font-black">₹0</div>
@@ -637,10 +738,9 @@ export default function ArtopPage() {
                         {/* Pro */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
-                            className="relative border-4 border-black bg-black text-white p-10 text-center shadow-[12px_12px_0_#bae6fd]"
-                            style={{ filter: 'url(#rough-paper)' }}
+                            className="relative rounded-3xl border-2 border-black bg-black text-white p-10 text-center shadow-2xl"
                         >
-                            <div className="absolute -top-5 right-6 rotate-12 border-2 border-black bg-[#bae6fd] px-4 py-1 text-xs font-black text-black shadow-[3px_3px_0_rgba(0,0,0,1)]">
+                            <div className="absolute -top-5 right-6 rotate-12 rounded-full border border-black/20 bg-[#bae6fd] px-4 py-1 text-xs font-black text-black shadow-sm">
                                 MOST POPULAR
                             </div>
                             <h3 className="text-xl font-bold uppercase tracking-wide">Pro Artist</h3>
@@ -660,7 +760,7 @@ export default function ArtopPage() {
                                     </li>
                                 ))}
                             </ul>
-                            <button className="w-full border-2 border-white bg-white py-4 font-bold text-black transition-all hover:bg-transparent hover:text-white" style={{ filter: 'url(#rough-paper)' }}>
+                            <button className="w-full rounded-2xl bg-white py-4 font-bold text-black transition-all hover:bg-gray-200 shadow-sm mt-4">
                                 Start Pro — ₹199/mo
                             </button>
                         </motion.div>
@@ -669,30 +769,102 @@ export default function ArtopPage() {
             </section>
 
             {/* ── CTA BANNER ──────────────────────────────────────────────── */}
-            <section className="relative z-10 mx-6 mb-20 overflow-hidden border-4 border-black bg-[#2d2d2d] p-16 text-center text-white shadow-[8px_8px_0_#bae6fd]" style={{ filter: 'url(#rough-paper)' }}>
-                <h2 className="mb-4 text-4xl font-black md:text-5xl">
-                    Stop guessing.<br />
-                    <span className="text-[#bae6fd]">Start drawing right.</span>
-                </h2>
-                <p className="mb-8 text-gray-400 text-lg">Join 1,000+ artists who trial before they buy.</p>
-                <div className="flex flex-wrap justify-center gap-4">
-                    <SketchButton className="text-white border-white">
-                        Open Sketch Lab Free <ArrowRight size={16} />
-                    </SketchButton>
+            <section className="relative z-10 bg-[#fdfbf7] py-28 px-6 md:px-24 text-center text-black border-y border-black/5">
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }} />
+                <div className="relative z-10">
+                    <h2 className="mb-4 text-4xl font-black md:text-6xl tracking-tight">
+                        Stop guessing.<br />
+                        <span className="text-sky-500">Start drawing right.</span>
+                    </h2>
+                    <p className="mb-10 text-gray-500 text-xl max-w-md mx-auto font-medium">Join 1,000+ artists who trial before they buy.</p>
+                    <div className="flex flex-wrap justify-center gap-4">
+                        <Link href="/app" className="group relative flex items-center gap-3 rounded-full bg-black px-10 py-5 text-sm font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-sky-500 shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+                            Open Sketch Lab Free <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                        </Link>
+                    </div>
+                </div>
+            </section>
+            {/* ── TRUSTED BY MARQUEE ─────────────────────────────────────────── */}
+            <section className="relative z-10 border-y border-black/10 bg-white py-16 overflow-hidden">
+                <div className="mx-auto max-w-7xl px-6 text-center">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-8">Trusted by instructors at</p>
+                    <div className="flex flex-wrap items-center justify-center gap-12 md:gap-24 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+                        {['NID Ahmedabad', 'Sir J.J. School of Art', 'Srishti Institute', 'NIFT Delhi'].map((school) => (
+                            <span key={school} className="text-xl md:text-2xl font-black text-gray-800 tracking-tight">{school}</span>
+                        ))}
+                    </div>
                 </div>
             </section>
 
-            {/* ── FOOTER ──────────────────────────────────────────────────── */}
-            <footer className="border-t-2 border-dashed border-black/20 px-6 py-12">
-                <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 md:flex-row md:justify-between">
-                    <LogoArtgez />
-                    <p className="text-sm font-medium opacity-40 text-center">
-                        Drawn with love in India. Built for artists everywhere. 🎨
-                    </p>
-                    <div className="flex gap-6 text-sm font-medium opacity-50">
-                        <a href="#" className="hover:opacity-100 transition-opacity">Privacy</a>
-                        <a href="#" className="hover:opacity-100 transition-opacity">Terms</a>
-                        <a href="#" className="hover:opacity-100 transition-opacity">Contact</a>
+            {/* ── FOUNDER BADGE TESTIMONIALS ─────────────────────────────── */}
+            <section className="relative z-10">
+                <FounderBadge backgroundColor="#fdfbf7" accentColor="#0ea5e9" />
+            </section>
+
+            <div className="border-t border-black/5" />
+
+            {/* ── FAQ SECTION ────────────────────────────────────────────────── */}
+            <section className="relative z-10 bg-[#fdfbf7] py-32 px-6">
+                <div className="mx-auto max-w-3xl">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl font-black md:text-5xl tracking-tight mb-4">Frequently Asked Questions</h2>
+                        <p className="text-gray-500">Everything you need to know about Artgez.</p>
+                    </div>
+                    <div className="flex flex-col gap-4">
+                        {[
+                            { q: "Is the Sketch Lab really free?", a: "Yes. The digital Sketch Lab is 100% free to use. We only charge when you decide to buy the physical art supplies from our shop." },
+                            { q: "How accurate is the Pencil DNA?", a: "Extremely. We physically test each pencil batch on a 1-10 scale for hardness, smudge, and opacity before digitizing the profile into the simulator." },
+                            { q: "Do you ship physical supplies worldwide?", a: "Currently, we ship all across India within 3-5 business days. International shipping is coming in Q4 2026." },
+                            { q: "Can I use my iPad/Tablet?", a: "Absolutely. The Sketch Lab supports Apple Pencil and Wacom styluses with full pressure sensitivity enabled." }
+                        ].map((faq, i) => (
+                            <FAQItem key={i} faq={faq} index={i} isOpen={openFaq === i} toggleOpen={toggleFaq} />
+                        ))}
+                    </div>
+
+                    {/* CTA inside FAQ section */}
+                    <div className="mt-20 text-center">
+                        <p className="text-sm text-gray-400 mb-4 uppercase tracking-widest font-mono">Still have questions?</p>
+                        <a href="mailto:samay@artgez.in" className="inline-flex items-center gap-2 rounded-full border-2 border-black px-8 py-4 text-sm font-bold text-black transition-all hover:bg-black hover:text-white">
+                            Contact us — samay@artgez.in <ArrowRight size={16} />
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── FOOTER ─────────────────────────────────────────────────────── */}
+            <footer className="relative z-10 bg-black text-white pt-24 pb-12 px-6 rounded-t-[3rem] overflow-hidden">
+                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`, backgroundSize: '40px 40px' }} />
+                <div className="mx-auto max-w-7xl relative z-10 grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-white/10 pb-16">
+                    <div className="md:col-span-2">
+                        <LogoArtgez className="text-white invert" />
+                        <p className="mt-6 text-gray-400 text-sm max-w-sm leading-relaxed">
+                            India's first professional artist supply simulator. Test the exact graphite grade and paper texture digitally before buying the physical product.
+                        </p>
+                    </div>
+                    <div>
+                        <h5 className="font-bold mb-6 tracking-tight">Product</h5>
+                        <ul className="flex flex-col gap-3 text-sm text-gray-400">
+                            <li><Link href="/app" className="hover:text-white transition-colors">Sketch Lab</Link></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Supply Shop</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Pencil DNA</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">AI Style Detector</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 className="font-bold mb-6 tracking-tight">Legal</h5>
+                        <ul className="flex flex-col gap-3 text-sm text-gray-400">
+                            <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+                            <li><a href="#" className="hover:text-white transition-colors">Shipping Info</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div className="mx-auto max-w-7xl mt-8 flex flex-col md:flex-row items-center justify-between text-xs text-gray-500 font-medium">
+                    <p>© 2026 Artgez. All rights reserved.</p>
+                    <div className="flex gap-4 mt-4 md:mt-0">
+                        <a href="https://github.com/samay-hash/Artgez" className="hover:text-white transition-colors">GitHub</a>
+                        <a href="#" className="hover:text-white transition-colors">Twitter</a>
+                        <a href="#" className="hover:text-white transition-colors">Instagram</a>
                     </div>
                 </div>
             </footer>

@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Sparkles, Plus, Image as ImageIcon, Frame, Loader2, ArrowLeft, X } from 'lucide-react';
+import { Heart, Sparkles, Plus, Image as ImageIcon, Frame, Loader2, ArrowLeft, X, Upload, FlaskConical, ShoppingBag } from 'lucide-react';
 import RoughCard from './RoughCard';
 import RoughButton from './RoughButton';
 import { logEvent } from '@/src/lib/analytics';
+import { PENCILS, PAPERS } from '@/src/components/artlab/data';
 
 type ExhibitionItem = {
     id: string;
@@ -24,22 +25,38 @@ type Props = {
     sessionId: string;
     mySketches: any[];
     onBackToCanvas?: () => void;
+    onTryInLab?: (pencilId: string) => void;
+    onBuySupply?: (item: any) => void;
 };
 
-export default function MuseumHall({ sessionId, mySketches, onBackToCanvas }: Props) {
+export default function MuseumHall({ sessionId, mySketches, onBackToCanvas, onTryInLab, onBuySupply }: Props) {
     const [exhibitions, setExhibitions] = useState<ExhibitionItem[]>([]);
     const [loading, setLoading] = useState(false);
     
     // Modal state for posting artwork
     const [isPosting, setIsPosting] = useState(false);
+    const [uploadTab, setUploadTab] = useState<'lab' | 'upload'>('lab');
+    
+    // Lab Sketch state
     const [selectedSketchId, setSelectedSketchId] = useState('');
+    
+    // Upload Art state
+    const [uploadImageBase64, setUploadImageBase64] = useState<string>('');
+    const [uploadName, setUploadName] = useState('');
+    const [uploadPencil, setUploadPencil] = useState('');
+    const [uploadPaper, setUploadPaper] = useState('');
+    
+    // Shared state
     const [selectedFrame, setSelectedFrame] = useState('gold'); // gold, wood, black
     const [publishing, setPublishing] = useState(false);
+    
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const fetchExhibitions = async () => {
         setLoading(true);
         try {
             const res = await fetch('/api/exhibitions');
+            if (!res.ok) return;
             const result = await res.json();
             if (result.success) {
                 setExhibitions(result.data);
@@ -56,7 +73,6 @@ export default function MuseumHall({ sessionId, mySketches, onBackToCanvas }: Pr
     }, []);
 
     const handleLike = async (artId: string) => {
-        // Optimistic UI update
         setExhibitions(prev => prev.map(art => {
             if (art.id === artId) {
                 return { ...art, likes: art.likes + 1 };
@@ -72,9 +88,9 @@ export default function MuseumHall({ sessionId, mySketches, onBackToCanvas }: Pr
                     'x-session-id': sessionId,
                 }
             });
+            if (!res.ok) return;
             const result = await res.json();
             if (result.success) {
-                // update with exact value from DB
                 setExhibitions(prev => prev.map(art => {
                     if (art.id === artId) {
                         return { ...art, likes: result.likes };
@@ -87,9 +103,46 @@ export default function MuseumHall({ sessionId, mySketches, onBackToCanvas }: Pr
         }
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 8 * 1024 * 1024) {
+            alert("File is too large! Please select an image under 8MB.");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setUploadImageBase64(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+    };
+
     const handlePublish = async () => {
-        const matchingSketch = mySketches.find(s => s.id === selectedSketchId);
-        if (!matchingSketch) return;
+        let finalSketchId = '';
+        let finalName = '';
+        let finalImageData = '';
+        let finalPencil = '';
+        let finalPaper = '';
+
+        if (uploadTab === 'lab') {
+            const matchingSketch = mySketches.find(s => s.id === selectedSketchId);
+            if (!matchingSketch) return;
+            finalSketchId = matchingSketch.id;
+            finalName = matchingSketch.name;
+            finalImageData = matchingSketch.data;
+            finalPencil = matchingSketch.pencil;
+            finalPaper = matchingSketch.paper;
+        } else {
+            if (!uploadImageBase64 || !uploadPencil || !uploadPaper) {
+                alert("Please select an image, pencil, and paper type.");
+                return;
+            }
+            finalSketchId = 'custom_upload_' + Date.now();
+            finalName = uploadName || 'Untitled Personal Art';
+            finalImageData = uploadImageBase64;
+            finalPencil = PENCILS.find(p => p.id === uploadPencil)?.label || uploadPencil;
+            finalPaper = PAPERS.find(p => p.id === uploadPaper)?.label || uploadPaper;
+        }
 
         setPublishing(true);
         try {
@@ -100,19 +153,27 @@ export default function MuseumHall({ sessionId, mySketches, onBackToCanvas }: Pr
                     'x-session-id': sessionId,
                 },
                 body: JSON.stringify({
-                    sketchId: matchingSketch.id,
-                    name: matchingSketch.name,
-                    imageData: matchingSketch.data,
+                    sketchId: finalSketchId,
+                    name: finalName,
+                    imageData: finalImageData,
                     frameType: selectedFrame,
-                    pencilUsed: matchingSketch.pencil,
-                    paperUsed: matchingSketch.paper,
+                    pencilUsed: finalPencil,
+                    paperUsed: finalPaper,
                 })
             });
+            if (!res.ok) {
+                alert("Failed to publish to the Museum. Backend may be down.");
+                return;
+            }
             const result = await res.json();
             if (result.success) {
                 fetchExhibitions();
                 setIsPosting(false);
                 setSelectedSketchId('');
+                setUploadImageBase64('');
+                setUploadName('');
+                setUploadPencil('');
+                setUploadPaper('');
             }
         } catch (err) {
             console.error(err);
@@ -146,10 +207,6 @@ export default function MuseumHall({ sessionId, mySketches, onBackToCanvas }: Pr
                     )}
                     <button
                         onClick={() => {
-                            if (mySketches.length === 0) {
-                                alert("You haven't saved any sketches yet! Go draw and save a sketch in the Lab first.");
-                                return;
-                            }
                             setIsPosting(true);
                             logEvent('open_exhibition_modal');
                         }}
@@ -223,12 +280,12 @@ export default function MuseumHall({ sessionId, mySketches, onBackToCanvas }: Pr
                                     <div className="w-12 h-1.5 bg-yellow-400/20 rounded-full blur-[1px] absolute -top-4" />
 
                                     {/* Art Card Description Label hanging underneath */}
-                                    <div className="w-[280px] bg-white text-black p-3.5 mt-4 border-2 border-black shadow-[3px_3px_0_rgba(255,255,255,1)] relative">
+                                    <div className="w-[280px] bg-white text-black p-3.5 mt-4 border-2 border-black shadow-[3px_3px_0_rgba(255,255,255,1)] relative group z-20 hover:z-30 transition-all">
                                         <div className="flex items-start justify-between">
                                             <div>
                                                 <h4 className="text-sm font-black leading-tight">{art.name}</h4>
                                                 <span className="text-[9px] uppercase font-bold tracking-wider text-purple-600 block mt-0.5">
-                                                    by sess_{art.sessionId.substring(5, 11)}
+                                                    by {art.sketchId.startsWith('custom_upload') ? 'Community Artist' : `sess_${art.sessionId.substring(5, 11)}`}
                                                 </span>
                                             </div>
                                             <button
@@ -239,9 +296,37 @@ export default function MuseumHall({ sessionId, mySketches, onBackToCanvas }: Pr
                                             </button>
                                         </div>
 
-                                        <div className="mt-2.5 pt-2 border-t border-black/5 flex justify-between text-[9px] text-gray-500 font-semibold select-none">
-                                            <span>✏️ {art.pencilUsed}</span>
-                                            <span>📄 {art.paperUsed}</span>
+                                        <div className="mt-2.5 pt-2 border-t border-black/5 flex flex-col gap-1 text-[9px] text-gray-500 font-semibold select-none">
+                                            <div className="flex justify-between">
+                                                <span>✏️ {art.pencilUsed}</span>
+                                                <span>📄 {art.paperUsed}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* ACTION BUTTONS (Try and Buy) */}
+                                        <div className="mt-3 flex gap-2">
+                                            <button 
+                                                onClick={() => {
+                                                    const pencil = PENCILS.find(p => p.label === art.pencilUsed);
+                                                    if (pencil && onTryInLab) onTryInLab(pencil.id);
+                                                }}
+                                                className="flex-1 flex justify-center items-center gap-1 bg-yellow-400 hover:bg-yellow-500 text-black py-1.5 rounded border border-black shadow-[1px_1px_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[1px] transition-all text-[9px] font-black uppercase tracking-wider"
+                                                title="Try this pencil in the Sketch Lab"
+                                            >
+                                                <FlaskConical size={10} /> Try Tool
+                                            </button>
+                                            <button 
+                                                onClick={() => {
+                                                    const pencil = PENCILS.find(p => p.label === art.pencilUsed);
+                                                    if (pencil && onBuySupply) {
+                                                        onBuySupply({ id: pencil.id, name: pencil.label, price: pencil.price });
+                                                    }
+                                                }}
+                                                className="flex-1 flex justify-center items-center gap-1 bg-black hover:bg-gray-800 text-white py-1.5 rounded shadow-[1px_1px_0_rgba(255,255,255,0.2)] text-[9px] font-black uppercase tracking-wider transition-colors"
+                                                title="Buy this physical pencil"
+                                            >
+                                                <ShoppingBag size={10} /> Buy Supply
+                                            </button>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -259,45 +344,140 @@ export default function MuseumHall({ sessionId, mySketches, onBackToCanvas }: Pr
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="w-full max-w-md text-black"
+                            className="w-full max-w-lg text-black max-h-[90vh] flex flex-col"
                         >
-                            <RoughCard className="bg-white p-6 shadow-2xl relative" roughness={0.8}>
+                            <RoughCard className="bg-white p-6 shadow-2xl relative flex flex-col overflow-y-auto" roughness={0.8}>
                                 {/* Close Button */}
                                 <button
                                     onClick={() => setIsPosting(false)}
-                                    className="absolute top-4 right-4 bg-black/5 hover:bg-black hover:text-white rounded p-1 transition-colors"
+                                    className="absolute top-4 right-4 bg-black/5 hover:bg-black hover:text-white rounded p-1 transition-colors z-10"
                                 >
                                     <X size={16} />
                                 </button>
 
-                                <div className="mb-4">
+                                <div className="mb-4 pr-6">
                                     <span className="flex items-center gap-1 text-[9px] uppercase font-black tracking-widest text-purple-600">
                                         <Frame size={11} /> Museum Framing Workshop
                                     </span>
                                     <h3 className="text-xl font-black mt-1">Exhibit Art Masterpiece</h3>
-                                    <p className="text-xs text-gray-500 font-semibold">Select your saved canvas drawing and choose an elegant frame style.</p>
+                                    <p className="text-xs text-gray-500 font-semibold">Select your saved canvas drawing or upload a personal sketch to display.</p>
+                                </div>
+                                
+                                {/* Tabs */}
+                                <div className="flex mb-4 border-b border-black/10">
+                                    <button 
+                                        onClick={() => setUploadTab('lab')}
+                                        className={`flex-1 py-2 text-xs font-black uppercase tracking-wider border-b-2 transition-colors ${uploadTab === 'lab' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                    >
+                                        From Sketch Lab
+                                    </button>
+                                    <button 
+                                        onClick={() => setUploadTab('upload')}
+                                        className={`flex-1 py-2 text-xs font-black uppercase tracking-wider border-b-2 transition-colors flex items-center justify-center gap-1 ${uploadTab === 'upload' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                    >
+                                        <Upload size={12} /> Upload Custom
+                                    </button>
                                 </div>
 
                                 <div className="flex flex-col gap-4">
-                                    {/* Select Art Sketch */}
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-xs font-bold text-gray-600">Select Sketch Artwork</label>
-                                        <select
-                                            value={selectedSketchId}
-                                            onChange={e => setSelectedSketchId(e.target.value)}
-                                            className="h-10 rounded border-2 border-black/15 bg-white px-3 text-xs font-semibold outline-none focus:border-black"
-                                        >
-                                            <option value="">-- Choose from saved sketches --</option>
-                                            {mySketches.map(s => (
-                                                <option key={s.id} value={s.id}>
-                                                    {s.name} ({s.pencil} core on {s.paper})
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    {uploadTab === 'lab' ? (
+                                        /* Select Art Sketch */
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-xs font-bold text-gray-600">Select Sketch Artwork</label>
+                                            {mySketches.length === 0 ? (
+                                                <div className="p-4 bg-gray-50 border border-gray-200 text-xs text-gray-500 text-center rounded">
+                                                    You haven't saved any sketches in the lab yet.
+                                                </div>
+                                            ) : (
+                                                <select
+                                                    value={selectedSketchId}
+                                                    onChange={e => setSelectedSketchId(e.target.value)}
+                                                    className="h-10 rounded border-2 border-black/15 bg-white px-3 text-xs font-semibold outline-none focus:border-black"
+                                                >
+                                                    <option value="">-- Choose from saved sketches --</option>
+                                                    {mySketches.map(s => (
+                                                        <option key={s.id} value={s.id}>
+                                                            {s.name} ({s.pencil} core on {s.paper})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        /* Upload Custom Image */
+                                        <div className="flex flex-col gap-3">
+                                            {/* File dropzone / selector */}
+                                            <div 
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${uploadImageBase64 ? 'border-emerald-400 bg-emerald-50' : 'border-black/20 hover:border-purple-500 bg-gray-50'}`}
+                                            >
+                                                <input 
+                                                    type="file" 
+                                                    accept="image/*" 
+                                                    className="hidden" 
+                                                    ref={fileInputRef}
+                                                    onChange={handleFileChange}
+                                                />
+                                                {uploadImageBase64 ? (
+                                                    <div className="flex items-center gap-2 text-emerald-600">
+                                                        <Sparkles size={16} />
+                                                        <span className="text-xs font-bold">Image Ready! Click to change.</span>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <Upload size={20} className="text-gray-400 mb-2" />
+                                                        <p className="text-xs font-bold text-gray-700">Click to upload your artwork</p>
+                                                        <p className="text-[10px] text-gray-400 mt-1">PNG, JPG up to 8MB</p>
+                                                    </>
+                                                )}
+                                            </div>
+
+                                            {/* Name */}
+                                            <div className="flex flex-col gap-1">
+                                                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-wide">Artwork Title</label>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="e.g. Midnight Portrait"
+                                                    value={uploadName}
+                                                    onChange={e => setUploadName(e.target.value)}
+                                                    className="h-9 rounded border-2 border-black/15 px-2 text-xs outline-none focus:border-black"
+                                                />
+                                            </div>
+
+                                            {/* Tool Tagging */}
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-[10px] font-bold text-gray-600 uppercase tracking-wide">Pencil Used</label>
+                                                    <select
+                                                        value={uploadPencil}
+                                                        onChange={e => setUploadPencil(e.target.value)}
+                                                        className="h-9 rounded border-2 border-black/15 bg-white px-2 text-xs outline-none focus:border-black"
+                                                    >
+                                                        <option value="">-- Select Pencil --</option>
+                                                        {PENCILS.map(p => (
+                                                            <option key={p.id} value={p.id}>{p.label}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-[10px] font-bold text-gray-600 uppercase tracking-wide">Paper Used</label>
+                                                    <select
+                                                        value={uploadPaper}
+                                                        onChange={e => setUploadPaper(e.target.value)}
+                                                        className="h-9 rounded border-2 border-black/15 bg-white px-2 text-xs outline-none focus:border-black"
+                                                    >
+                                                        <option value="">-- Select Paper --</option>
+                                                        {PAPERS.map(p => (
+                                                            <option key={p.id} value={p.id}>{p.label}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Choose Frame Styling */}
-                                    <div className="flex flex-col gap-1.5">
+                                    <div className="flex flex-col gap-1.5 mt-2">
                                         <label className="text-xs font-bold text-gray-600">Exhibition Frame Style</label>
                                         <div className="grid grid-cols-3 gap-2.5 mt-1">
                                             {/* Royal Gold */}
@@ -357,7 +537,7 @@ export default function MuseumHall({ sessionId, mySketches, onBackToCanvas }: Pr
                                     </div>
 
                                     {/* Preview container */}
-                                    {selectedSketchId && (
+                                    {((uploadTab === 'lab' && selectedSketchId) || (uploadTab === 'upload' && uploadImageBase64)) && (
                                         <div className="mt-2 flex items-center justify-center p-3.5 bg-gray-50 rounded border border-black/5">
                                             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1">
                                                 <Sparkles size={11} className="text-yellow-500 animate-spin" /> Ready to exhibit on spotlight wall
@@ -378,7 +558,11 @@ export default function MuseumHall({ sessionId, mySketches, onBackToCanvas }: Pr
                                             onClick={handlePublish}
                                             className="flex-1 py-3 text-xs uppercase"
                                             bg="#ffeb3b"
-                                            disabled={publishing || !selectedSketchId}
+                                            disabled={
+                                                publishing || 
+                                                (uploadTab === 'lab' && !selectedSketchId) || 
+                                                (uploadTab === 'upload' && (!uploadImageBase64 || !uploadPencil || !uploadPaper))
+                                            }
                                         >
                                             {publishing ? (
                                                 <span className="flex items-center justify-center gap-1.5">

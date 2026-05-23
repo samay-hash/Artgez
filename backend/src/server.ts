@@ -11,6 +11,7 @@ import aiRouter from './routes/ai';
 import eventsRouter from './routes/events';
 import exhibitionsRouter from './routes/exhibitions';
 import roomsRouter from './routes/rooms';
+import authRouter from './routes/auth';
 
 // Load environment variables
 dotenv.config();
@@ -48,6 +49,7 @@ app.use('/api/ai', aiRouter);
 app.use('/api/events', eventsRouter);
 app.use('/api/exhibitions', exhibitionsRouter);
 app.use('/api/rooms', roomsRouter);
+app.use('/api/auth', authRouter);
 
 // Health check
 app.get('/health', (_req, res) => {

@@ -53,18 +53,17 @@ export function SketchButton({ children, className }: { children: React.ReactNod
         <motion.button
             whileHover="hover"
             whileTap="tap"
-            className={cn("group relative px-8 py-4 font-bold text-black", className)}
+            className={cn("group relative px-8 py-3.5 font-bold text-black", className)}
         >
             {/* The Border (SVG Path that draws itself) */}
-            <div className="absolute inset-0 h-full w-full">
+            <div className="absolute inset-0 h-full w-full pointer-events-none">
                 <svg className="h-full w-full overflow-visible">
                     <motion.rect
-                        x="2" y="2" width="98%" height="96%" rx="4"
-                        fill="transparent"
-                        stroke="currentColor"
+                        x="1" y="1" width="calc(100% - 2px)" height="calc(100% - 2px)" rx="8"
+                        fill="white"
+                        stroke="black"
                         strokeWidth="2"
-                        strokeLinecap="round"
-                        style={{ filter: "url(#rough-paper)" }}
+                        className="transition-all duration-300 group-hover:fill-black group-hover:stroke-black"
                         initial={{ pathLength: 0 }}
                         animate={{ pathLength: 1 }}
                         transition={{ duration: 1, ease: "easeInOut" }}
@@ -72,23 +71,7 @@ export function SketchButton({ children, className }: { children: React.ReactNod
                 </svg>
             </div>
 
-            {/* The Scribble Fill (Appears on Hover) */}
-            <motion.div
-                className="absolute inset-2 -z-10 bg-black opacity-0"
-                variants={{
-                    hover: {
-                        opacity: 0.1,
-                        scale: 1.05,
-                        transition: { duration: 0.2 }
-                    }
-                }}
-                style={{
-                    maskImage: "url('data:image/svg+xml;utf8,<svg viewBox=%220 0 200 100%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M0,50 Q50,0 100,50 T200,50%22 stroke=%22black%22 stroke-width=%2210%22 fill=%22none%22/></svg>')",
-                    filter: "url(#rough-paper)"
-                }}
-            />
-
-            <span className="relative flex items-center gap-2">{children}</span>
+            <span className="relative flex items-center gap-2 group-hover:text-white transition-colors duration-300">{children}</span>
         </motion.button>
     );
 }

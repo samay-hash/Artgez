@@ -3,7 +3,25 @@ import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 import { db, logEvent } from '../db/database';
 
+import jwt from 'jsonwebtoken';
+
 const router = Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function getSessionOrUserId(req: Request): string | null {
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        try {
+            const token = authHeader.split(' ')[1];
+            const decoded = jwt.verify(token, JWT_SECRET) as any;
+            return decoded.id;
+        } catch (err) {
+            // invalid token
+        }
+    }
+    return (req.query.session as string) || (req.headers['x-session-id'] as string) || (req.body.sessionId as string) || null;
+}
 
 // ─── Validation Schemas ────────────────────────────────────────────────────────
 
@@ -21,7 +39,7 @@ const SaveSketchSchema = z.object({
 
 // GET /api/sketches?session=xxx — list sketches for session
 router.get('/', (req: Request, res: Response) => {
-    const sessionId = (req.query.session as string) || req.headers['x-session-id'] as string;
+    const sessionId = getSessionOrUserId(req);
     if (!sessionId) {
         res.status(400).json({ success: false, error: 'Session ID required' });
         return;
@@ -41,7 +59,7 @@ router.get('/', (req: Request, res: Response) => {
 
 // GET /api/sketches/:id — get single sketch with full image data
 router.get('/:id', (req: Request, res: Response) => {
-    const sessionId = (req.query.session as string) || req.headers['x-session-id'] as string;
+    const sessionId = getSessionOrUserId(req);
     const sketch = db.prepare(
         `SELECT * FROM sketches WHERE id = ? AND session_id = ?`
     ).get(req.params.id, sessionId);
@@ -61,8 +79,8 @@ router.post('/', (req: Request, res: Response) => {
         return;
     }
 
-    const { name, imageData, pencilId, pencilLabel, paperId, paperLabel, sessionId } = parsed.data;
-    const sid = sessionId || (req.headers['x-session-id'] as string) || uuidv4();
+    const { name, imageData, pencilId, pencilLabel, paperId, paperLabel } = parsed.data;
+    const sid = getSessionOrUserId(req) || uuidv4();
     const id = uuidv4();
     const now = Date.now();
     const fileSize = Math.ceil(imageData.length * 0.75); // approximate bytes from base64
@@ -83,7 +101,7 @@ router.post('/', (req: Request, res: Response) => {
 
 // PATCH /api/sketches/:id — rename a sketch
 router.patch('/:id', (req: Request, res: Response) => {
-    const sessionId = req.headers['x-session-id'] as string;
+    const sessionId = getSessionOrUserId(req);
     const { name } = req.body;
     if (!name || typeof name !== 'string') {
         res.status(400).json({ success: false, error: 'Name is required' });
@@ -98,23 +116,23 @@ router.patch('/:id', (req: Request, res: Response) => {
         res.status(404).json({ success: false, error: 'Sketch not found' });
         return;
     }
-    res.json({ success: true, message: 'Sketch renamed' });
+    res.json({ success: true });
 });
 
 // DELETE /api/sketches/:id
 router.delete('/:id', (req: Request, res: Response) => {
-    const sessionId = (req.query.session as string) || req.headers['x-session-id'] as string;
+    const sessionId = getSessionOrUserId(req);
     const result = db.prepare(
         `DELETE FROM sketches WHERE id = ? AND session_id = ?`
     ).run(req.params.id, sessionId);
 
     if (result.changes === 0) {
-        res.status(404).json({ success: false, error: 'Sketch not found or unauthorized' });
+        res.status(404).json({ success: false, error: 'Sketch not found' });
         return;
     }
 
-    logEvent('delete_sketch', sessionId, req.params.id);
-    res.json({ success: true, message: 'Sketch deleted' });
+    logEvent('delete_sketch', sessionId || 'unknown', req.params.id);
+    res.json({ success: true });
 });
 
 // GET /api/sketches/:id/download — returns sketch with full image data for download

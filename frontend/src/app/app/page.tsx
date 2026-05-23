@@ -21,6 +21,9 @@ import RazorpayModal from '@/src/components/artlab/RazorpayModal';
 import { logEvent } from '@/src/lib/analytics';
 import LogoArtgez from '@/src/components/artlab/LogoArtgez';
 import ThemeCurtain, { playThemeSound } from '@/src/components/artlab/ThemeTransition';
+import AuthModal from '@/src/components/artlab/AuthModal';
+import dynamic from 'next/dynamic';
+const PencilShowcase3D = dynamic(() => import('@/src/components/artlab/PencilShowcase3D'), { ssr: false });
 
 type Tab = 'lab' | 'dna' | 'shop' | 'sketches' | 'ai' | 'museum' | 'codraw';
 
@@ -139,15 +142,30 @@ export default function ArtLabApp() {
     const [saveToast, setSaveToast] = useState(false);
     const [showDNAMobile, setShowDNAMobile] = useState(false);
     const [sessionId, setSessionId] = useState<string>('');
-    const [checkoutItem, setCheckoutItem] = useState<{ id: string; name: string; price: string } | null>(null);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [showShowcase, setShowShowcase] = useState(false);
+    
+    // Auth State
+    const [currentUser, setCurrentUser] = useState<any>(null);
+    const [authToken, setAuthToken] = useState<string | null>(null);
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [pendingSaveContext, setPendingSaveContext] = useState<any>(null);
+    const [checkoutItem, setCheckoutItem] = useState<{ id: string; name: string; price: number } | null>(null);
 
     const canvasHandle = useRef<CanvasHandle>(null);
 
-    const fetchSketches = useCallback(async (sid: string) => {
-        if (!sid) return;
+    const fetchSketches = useCallback(async (tokenOrSession: string) => {
+        if (!tokenOrSession) return;
         try {
-            const res = await fetch(`/api/sketches?session=${sid}`);
+            const isToken = tokenOrSession.startsWith('eyJ'); // simple JWT check
+            const headers: any = {};
+            if (isToken) headers['Authorization'] = `Bearer ${tokenOrSession}`;
+            else headers['x-session-id'] = tokenOrSession;
+
+            const url = isToken ? `/api/sketches` : `/api/sketches?session=${tokenOrSession}`;
+
+            const res = await fetch(`http://localhost:4000${url}`, { headers });
+            if (!res.ok) return;
             const result = await res.json();
             if (result.success && result.data) {
                 const mapped: SavedSketch[] = result.data.map((s: any) => ({
@@ -161,19 +179,27 @@ export default function ArtLabApp() {
                 setSavedSketches(mapped);
             }
         } catch (err) {
-            console.error('Failed to fetch sketches:', err);
+            // Backend likely not running — silently ignore
         }
     }, []);
 
-    // Load session and fetch sketches
     useEffect(() => {
-        let sid = localStorage.getItem('artgez-session-id');
-        if (!sid) {
-            sid = `sess_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`;
-            localStorage.setItem('artgez-session-id', sid);
+        const storedToken = localStorage.getItem('artgez_token');
+        const storedUser = localStorage.getItem('artgez_user');
+        
+        if (storedToken && storedUser) {
+            setAuthToken(storedToken);
+            setCurrentUser(JSON.parse(storedUser));
+            fetchSketches(storedToken);
+        } else {
+            let sid = localStorage.getItem('artgez-session-id');
+            if (!sid) {
+                sid = `sess_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`;
+                localStorage.setItem('artgez-session-id', sid);
+            }
+            setSessionId(sid);
+            fetchSketches(sid);
         }
-        setSessionId(sid);
-        fetchSketches(sid);
     }, [fetchSketches]);
 
     // Telemetry hooks for active supply trials
@@ -232,42 +258,50 @@ export default function ArtLabApp() {
         canvasHandle.current?.download(`artgez-sketch-${Date.now()}`);
     }, []);
 
-    // ── Save Sketch ──────────────────────────────────────────────────────────
-    const handleSave = useCallback(async () => {
-        const data = canvasHandle.current?.toDataURL();
-        if (!data || !sessionId) return;
-        
-        const name = `Sketch ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
+    const handleSaveSketch = useCallback(async () => {
+        if (!currentUser) {
+            setShowAuthModal(true);
+            setPendingSaveContext('sketch');
+            return;
+        }
+
+        const dataUrl = canvasHandle.current?.toDataURL();
+        if (!dataUrl) return;
+
+        const body = {
+            sessionId: currentUser ? undefined : sessionId, // if using session fallback
+            name: `Sketch ${savedSketches.length + 1}`,
+            imageData: dataUrl,
+            pencilId: activePencil.id,
+            pencilLabel: activePencil.label,
+            paperId: activePaper.id,
+            paperLabel: activePaper.label,
+            fileSize: Math.round(dataUrl.length * 0.75),
+        };
+
         try {
-            const res = await fetch('/api/sketches', {
+            const res = await fetch('http://localhost:4000/api/sketches', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-session-id': sessionId,
+                    ...(authToken && { 'Authorization': `Bearer ${authToken}` })
                 },
-                body: JSON.stringify({
-                    name,
-                    imageData: data,
-                    pencilId: activePencil.id,
-                    pencilLabel: activePencil.label,
-                    paperId: activePaper.id,
-                    paperLabel: activePaper.label,
-                    sessionId,
-                }),
+                body: JSON.stringify(body),
             });
+            if (!res.ok) { console.warn('Backend unavailable'); return; }
             const result = await res.json();
             if (result.success) {
                 setSaveToast(true);
                 setTimeout(() => setSaveToast(false), 2500);
-                fetchSketches(sessionId);
-                logEvent('SKETCH_SAVE', activePencil.id, { name, paperId: activePaper.id });
+                fetchSketches(authToken || sessionId);
+                logEvent('SKETCH_SAVE', activePencil.id, { name: body.name, paperId: activePaper.id });
             } else {
                 console.error('Failed to save sketch:', result.error);
             }
         } catch (err) {
-            console.error('Failed to save sketch:', err);
+            // Backend likely not running
         }
-    }, [activePencil, activePaper, sessionId, fetchSketches]);
+    }, [currentUser, authToken, sessionId, activePencil, activePaper, savedSketches.length, fetchSketches]);
 
     // ── Delete Sketch ────────────────────────────────────────────────────────
     const handleDelete = useCallback(async (id: string) => {
@@ -276,6 +310,7 @@ export default function ArtLabApp() {
             const res = await fetch(`/api/sketches/${id}?session=${sessionId}`, {
                 method: 'DELETE',
             });
+            if (!res.ok) return;
             const result = await res.json();
             if (result.success) {
                 fetchSketches(sessionId);
@@ -283,7 +318,7 @@ export default function ArtLabApp() {
                 console.error('Failed to delete sketch:', result.error);
             }
         } catch (err) {
-            console.error('Failed to delete sketch:', err);
+            // Backend likely not running
         }
     }, [sessionId, fetchSketches]);
 
@@ -301,7 +336,7 @@ export default function ArtLabApp() {
         const handler = (e: KeyboardEvent) => {
             if (e.metaKey || e.ctrlKey) {
                 if (e.key === 'z') { e.preventDefault(); if (e.shiftKey) handleRedo(); else handleUndo(); }
-                if (e.key === 's') { e.preventDefault(); handleSave(); }
+                if (e.key === 's') { e.preventDefault(); handleSaveSketch(); }
             }
             if (e.key === 'p' || e.key === 'b') setActiveTool('pencil');
             if (e.key === 'e') setActiveTool('eraser');
@@ -309,7 +344,7 @@ export default function ArtLabApp() {
         };
         window.addEventListener('keydown', handler);
         return () => window.removeEventListener('keydown', handler);
-    }, [handleUndo, handleRedo, handleSave]);
+    }, [handleUndo, handleRedo, handleSaveSketch]);
 
     // ── Render ───────────────────────────────────────────────────────────────
     return (
@@ -345,7 +380,7 @@ export default function ArtLabApp() {
                         <Dna size={12} /> DNA
                     </button>
                     <button
-                        onClick={handleSave}
+                        onClick={handleSaveSketch}
                         className="flex items-center gap-1.5 rounded border-2 border-black dark:border-emerald-400 bg-[#ffeb3b] dark:bg-emerald-500 px-3 py-1 text-xs font-bold text-black dark:text-zinc-950 shadow-[2px_2px_0_rgba(0,0,0,0.5)] dark:shadow-[2px_2px_0_rgba(16,185,129,0.3)] transition-all hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
                     >
                         <Save size={12} /> Save
@@ -425,6 +460,25 @@ export default function ArtLabApp() {
                         })}
                     </div>
 
+                    {/* 3D Showcase CTA Button */}
+                    <div className="px-2.5 pb-1">
+                        <button
+                            onClick={() => setShowShowcase(true)}
+                            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg border-2 border-purple-400/60 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition-all group relative"
+                            title="View all pencils in 3D"
+                        >
+                            <span className="text-sm shrink-0">🎯</span>
+                            {!isSidebarCollapsed && (
+                                <span className="text-[9px] font-black uppercase tracking-widest leading-tight">3D Showcase</span>
+                            )}
+                            {isSidebarCollapsed && (
+                                <div className="pointer-events-none absolute left-full ml-4 z-50 whitespace-nowrap rounded border-2 border-black bg-white px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-black shadow-[3px_3px_0_rgba(0,0,0,1)] opacity-0 group-hover:opacity-100 transition-opacity">
+                                    3D Pencil Showcase
+                                </div>
+                            )}
+                        </button>
+                    </div>
+
                     {/* Theme Toggle Button */}
                     <div className="p-2 border-t border-black/5 dark:border-white/5 bg-[#fafaf8]/50 dark:bg-[#202024]/50">
                         <button
@@ -445,11 +499,35 @@ export default function ArtLabApp() {
 
                     {/* Active Session telemetry indicators at the bottom */}
                     {!isSidebarCollapsed && (
-                        <div className="p-4 border-t border-black/5 dark:border-white/5 bg-[#fafaf8] dark:bg-[#202024] text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed transition-colors duration-300">
-                            <div className="flex items-center gap-1.5 truncate">
-                                <UserCircle2 size={13} className="text-purple-600 shrink-0" />
-                                <span className="truncate">session: {sessionId.substring(5, 12)}...</span>
-                            </div>
+                        <div className="p-3 border-t border-black/5 dark:border-white/5 bg-[#fafaf8] dark:bg-[#202024] transition-colors duration-300">
+                            {currentUser ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 rounded bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-white text-[10px] font-bold">
+                                        {currentUser.display_name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="flex flex-col truncate">
+                                        <span className="text-[10px] font-black text-black dark:text-white truncate">{currentUser.display_name}</span>
+                                        <button 
+                                            onClick={() => {
+                                                localStorage.removeItem('artgez_token');
+                                                localStorage.removeItem('artgez_user');
+                                                setCurrentUser(null);
+                                                setAuthToken(null);
+                                            }}
+                                            className="text-[9px] text-gray-500 hover:text-red-500 text-left"
+                                        >
+                                            Sign out
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button 
+                                    onClick={() => setShowAuthModal(true)}
+                                    className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded bg-black dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-wider hover:opacity-80 transition-opacity"
+                                >
+                                    <UserCircle2 size={12} /> Sign In
+                                </button>
+                            )}
                         </div>
                     )}
                 </motion.aside>
@@ -533,7 +611,13 @@ export default function ArtLabApp() {
                 )}
                 {activeTab === 'museum' && (
                     <div className="flex-1 overflow-hidden">
-                        <MuseumHall sessionId={sessionId} mySketches={savedSketches} onBackToCanvas={() => handleTabChange('lab')} />
+                        <MuseumHall 
+                            sessionId={sessionId} 
+                            mySketches={savedSketches} 
+                            onBackToCanvas={() => handleTabChange('lab')}
+                            onTryInLab={handleTryInLab}
+                            onBuySupply={setCheckoutItem}
+                        />
                     </div>
                 )}
                 {activeTab === 'codraw' && (
@@ -595,6 +679,34 @@ export default function ArtLabApp() {
                 itemPrice={checkoutItem?.price || ''}
                 itemId={checkoutItem?.id || ''}
                 sessionId={sessionId}
+            />
+
+            {/* 3D PENCIL SHOWCASE OVERLAY */}
+            {showShowcase && (
+                <PencilShowcase3D
+                    onClose={() => setShowShowcase(false)}
+                    onTryInLab={(pencilId) => {
+                        const p = PENCILS.find(x => x.id === pencilId);
+                        if (p) { setActivePencil(p); handleTabChange('lab'); }
+                    }}
+                    onBuySupply={setCheckoutItem}
+                />
+            )}
+
+            {/* AUTH MODAL */}
+            <AuthModal
+                isOpen={showAuthModal}
+                onClose={() => setShowAuthModal(false)}
+                onSuccess={(user, token) => {
+                    setCurrentUser(user);
+                    setAuthToken(token);
+                    localStorage.setItem('artgez_token', token);
+                    localStorage.setItem('artgez_user', JSON.stringify(user));
+                    if (pendingSaveContext === 'sketch') {
+                        setTimeout(handleSaveSketch, 100);
+                        setPendingSaveContext(null);
+                    }
+                }}
             />
         </div>
     );

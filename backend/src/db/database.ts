@@ -50,11 +50,14 @@ export function initializeDatabase(): void {
             expires_at  INTEGER NOT NULL
         );
 
-        -- Users (future auth)
+        -- Users
         CREATE TABLE IF NOT EXISTS users (
             id          TEXT    PRIMARY KEY,
             email       TEXT    UNIQUE,
+            password_hash TEXT,
             display_name TEXT,
+            provider    TEXT    DEFAULT 'local',
+            provider_id TEXT,
             plan        TEXT    NOT NULL DEFAULT 'free',
             created_at  INTEGER NOT NULL
         );

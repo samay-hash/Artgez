@@ -1,13 +1,13 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/samay-hash/Artgez/main/frontend/public/logo.png" alt="Artgez Logo" width="120" onerror="this.src='https://via.placeholder.com/120x120.png?text=Artgez'"/>
+  <img src="https://placehold.co/120x120/0f172a/ffffff?text=A" alt="Artgez Logo" width="120" style="border-radius: 20px;" />
   <br/>
   <h1>🎨 Artgez</h1>
   <p><strong>India's First Artist Supply Simulator & Pro Sketching Environment</strong></p>
 
   <p>
-    <a href="https://github.com/samay-hash/Artgez/issues"><img src="https://img.shields.io/github/issues/samay-hash/Artgez?color=10b981&style=for-the-badge" alt="Issues"/></a>
-    <a href="https://github.com/samay-hash/Artgez/pulls"><img src="https://img.shields.io/github/issues-pr/samay-hash/Artgez?color=3b82f6&style=for-the-badge" alt="Pull Requests"/></a>
-    <a href="https://github.com/samay-hash/Artgez/blob/main/LICENSE"><img src="https://img.shields.io/github/license/samay-hash/Artgez?color=8b5cf6&style=for-the-badge" alt="License"/></a>
+    <img src="https://img.shields.io/badge/Status-Active-10b981?style=for-the-badge" alt="Status Active"/>
+    <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js" alt="Next.js 14"/>
+    <img src="https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge" alt="License MIT"/>
   </p>
 </div>
 

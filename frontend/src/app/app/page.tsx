@@ -164,7 +164,7 @@ export default function ArtLabApp() {
 
             const url = isToken ? `/api/sketches` : `/api/sketches?session=${tokenOrSession}`;
 
-            const res = await fetch(`http://localhost:4000${url}`, { headers });
+            const res = await fetch(url, { headers });
             if (!res.ok) return;
             const result = await res.json();
             if (result.success && result.data) {
@@ -187,17 +187,18 @@ export default function ArtLabApp() {
         const storedToken = localStorage.getItem('artgez_token');
         const storedUser = localStorage.getItem('artgez_user');
         
+        let sid = localStorage.getItem('artgez-session-id');
+        if (!sid) {
+            sid = `sess_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`;
+            localStorage.setItem('artgez-session-id', sid);
+        }
+        setSessionId(sid);
+
         if (storedToken && storedUser) {
             setAuthToken(storedToken);
             setCurrentUser(JSON.parse(storedUser));
             fetchSketches(storedToken);
         } else {
-            let sid = localStorage.getItem('artgez-session-id');
-            if (!sid) {
-                sid = `sess_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`;
-                localStorage.setItem('artgez-session-id', sid);
-            }
-            setSessionId(sid);
             fetchSketches(sid);
         }
     }, [fetchSketches]);
@@ -305,22 +306,28 @@ export default function ArtLabApp() {
 
     // ── Delete Sketch ────────────────────────────────────────────────────────
     const handleDelete = useCallback(async (id: string) => {
-        if (!sessionId) return;
+        const identifier = authToken || sessionId;
+        if (!identifier) return;
         try {
-            const res = await fetch(`/api/sketches/${id}?session=${sessionId}`, {
+            const headers: Record<string, string> = {};
+            if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+            const queryParam = authToken ? '' : `?session=${sessionId}`;
+
+            const res = await fetch(`/api/sketches/${id}${queryParam}`, {
                 method: 'DELETE',
+                headers,
             });
             if (!res.ok) return;
             const result = await res.json();
             if (result.success) {
-                fetchSketches(sessionId);
+                fetchSketches(identifier);
             } else {
                 console.error('Failed to delete sketch:', result.error);
             }
         } catch (err) {
             // Backend likely not running
         }
-    }, [sessionId, fetchSketches]);
+    }, [authToken, sessionId, fetchSketches]);
 
     // ── Try in Lab (from shop) ───────────────────────────────────────────────
     const handleTryInLab = useCallback((pencilId: string) => {
@@ -353,7 +360,7 @@ export default function ArtLabApp() {
             <HandDrawnFilters />
 
             {/* ── TOP NAV ─────────────────────────────────────────────────── */}
-            <header className="flex h-12 shrink-0 items-center justify-between border-b-2 border-black/10 bg-white px-4">
+            <header className="flex h-12 shrink-0 items-center justify-between border-b-2 border-black/10 dark:border-white/10 bg-white dark:bg-[#18181b] px-4 transition-colors duration-300">
                 {/* Left: logo + back */}
                 <div className="flex items-center gap-3">
                     <Link
@@ -389,7 +396,7 @@ export default function ArtLabApp() {
             </header>
 
             {/* Mobile tabs */}
-            <div className="flex sm:hidden border-b border-black/8 bg-white">
+            <div className="flex sm:hidden border-b border-black/8 dark:border-white/8 bg-white dark:bg-[#18181b] transition-colors duration-300">
                 {TABS.map(tab => (
                     <button
                         key={tab.id}
@@ -663,7 +670,7 @@ export default function ArtLabApp() {
             </AnimatePresence>
 
             {/* Keyboard shortcuts hint */}
-            <div className="hidden lg:flex items-center gap-4 border-t border-black/5 bg-white px-4 py-1.5">
+            <div className="hidden lg:flex items-center gap-4 border-t border-black/5 dark:border-white/5 bg-white dark:bg-[#18181b] px-4 py-1.5 transition-colors duration-300">
                 {[['P','Pencil'],['E','Eraser'],['L','Line'],['⌘Z','Undo'],['⌘S','Save']].map(([k,l]) => (
                     <span key={k} className="flex items-center gap-1 text-[10px] text-gray-400">
                         <kbd className="rounded border border-black/10 bg-gray-50 px-1 font-mono text-[10px]">{k}</kbd>

@@ -12,6 +12,7 @@ import eventsRouter from './routes/events';
 import exhibitionsRouter from './routes/exhibitions';
 import roomsRouter from './routes/rooms';
 import authRouter from './routes/auth';
+import adminRouter from './routes/admin';
 
 // Load environment variables
 dotenv.config();
@@ -50,6 +51,7 @@ app.use('/api/events', eventsRouter);
 app.use('/api/exhibitions', exhibitionsRouter);
 app.use('/api/rooms', roomsRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/admin', adminRouter);
 
 // Health check
 app.get('/health', (_req, res) => {

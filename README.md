@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="https://placehold.co/120x120/0f172a/ffffff?text=A" alt="Artgez Logo" width="120" style="border-radius: 20px;" />
+  <!-- <img src="https://placehold.co/120x120/0f172a/ffffff?text=A" alt="Artgez Logo" width="120" style="border-radius: 20px;" /> -->
   <br/>
-  <h1>🎨 Artgez</h1>
+  <h1>Artgez</h1>
   <p><strong>India's First Artist Supply Simulator & Pro Sketching Environment</strong></p>
 
   <p>

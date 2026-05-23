@@ -444,9 +444,9 @@ export default function ArtopPage() {
                         transition={{ duration: 0.7, delay: 0.1 }}
                         className="mb-6 max-w-4xl text-5xl font-black leading-[1.05] tracking-tight md:text-7xl lg:text-8xl"
                     >
-                        Feel Every Stroke.
+                        Sketch the Soul.
                         <br />
-                        <Highlight color="#a5f3fc">Before You Buy.</Highlight>
+                        <Highlight color="#a5f3fc">Before You Hold.</Highlight>
                     </motion.h1>
 
                     <motion.p

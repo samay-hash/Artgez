@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Artgez — Feel Every Stroke. Before You Buy.",
+  title: "Artgez — .",
   description: "Virtual Art Lab simulator and community art gallery.",
 };
 

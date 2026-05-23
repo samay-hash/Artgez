@@ -29,7 +29,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: Props) {
         const body = isLogin ? { email, password } : { email, password, displayName };
 
         try {
-            const res = await fetch(`http://localhost:4000${endpoint}`, {
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
@@ -56,7 +56,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: Props) {
         // Simulating the OAuth redirect and callback
         setTimeout(async () => {
             try {
-                const res = await fetch(`http://localhost:4000/api/auth/oauth`, {
+                const res = await fetch(`/api/auth/oauth`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

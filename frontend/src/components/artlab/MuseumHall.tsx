@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Sparkles, Plus, Image as ImageIcon, Frame, Loader2, ArrowLeft, X, Upload, FlaskConical, ShoppingBag } from 'lucide-react';
+import { Heart, Sparkles, Plus, Image as ImageIcon, Frame, Loader2, ArrowLeft, X, Upload, FlaskConical, ShoppingBag, Trash2 } from 'lucide-react';
 import RoughCard from './RoughCard';
 import RoughButton from './RoughButton';
 import { logEvent } from '@/src/lib/analytics';
@@ -100,6 +100,29 @@ export default function MuseumHall({ sessionId, mySketches, onBackToCanvas, onTr
             }
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    const handleDelete = async (artId: string) => {
+        if (!confirm("Are you sure you want to delete this artwork from the Museum?")) return;
+
+        try {
+            const res = await fetch(`/api/exhibitions/${artId}`, {
+                method: 'DELETE',
+                headers: {
+                    'x-session-id': sessionId,
+                }
+            });
+            if (!res.ok) {
+                alert("Failed to delete artwork. Permission denied or backend down.");
+                return;
+            }
+            const result = await res.json();
+            if (result.success) {
+                fetchExhibitions();
+            }
+        } catch (err) {
+            console.error("Error deleting artwork:", err);
         }
     };
 
@@ -288,12 +311,24 @@ export default function MuseumHall({ sessionId, mySketches, onBackToCanvas, onTr
                                                     by {art.sketchId.startsWith('custom_upload') ? 'Community Artist' : `sess_${art.sessionId.substring(5, 11)}`}
                                                 </span>
                                             </div>
-                                            <button
-                                                onClick={() => handleLike(art.id)}
-                                                className="flex items-center gap-1 rounded border-2 border-black bg-red-100 hover:bg-red-200 px-2 py-1 text-xs font-bold transition-all shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]"
-                                            >
-                                                <Heart size={11} fill="#ef4444" className="text-red-500" /> {art.likes}
-                                            </button>
+                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                {/* Delete Button (Creator or Admin) */}
+                                                {(art.sessionId === sessionId || sessionId.toLowerCase().includes('admin') || sessionId === 'admin') && (
+                                                    <button
+                                                        onClick={() => handleDelete(art.id)}
+                                                        className="flex items-center justify-center rounded border-2 border-black bg-red-100 hover:bg-red-500 hover:text-white p-1 text-xs transition-all shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] text-red-600"
+                                                        title="Delete this artwork"
+                                                    >
+                                                        <Trash2 size={11} />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => handleLike(art.id)}
+                                                    className="flex items-center gap-1 rounded border-2 border-black bg-red-100 hover:bg-red-200 px-2 py-1 text-xs font-bold transition-all shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]"
+                                                >
+                                                    <Heart size={11} fill="#ef4444" className="text-red-500" /> {art.likes}
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div className="mt-2.5 pt-2 border-t border-black/5 flex flex-col gap-1 text-[9px] text-gray-500 font-semibold select-none">

@@ -107,7 +107,7 @@ export default function ArtLabApp() {
 
     useEffect(() => {
         const saved = localStorage.getItem('artgez-theme');
-        const isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const isDark = saved === 'dark';
         setIsDarkMode(isDark);
         if (isDark) {
             document.documentElement.classList.add('dark');

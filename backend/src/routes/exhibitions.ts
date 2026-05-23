@@ -101,4 +101,38 @@ router.post('/:id/like', (req: Request, res: Response) => {
     }
 });
 
+/**
+ * DELETE /api/exhibitions/:id
+ * Deletes a framed piece of artwork from the virtual gallery wall
+ */
+router.delete('/:id', (req: Request, res: Response) => {
+    const { id } = req.params;
+    const sessionId = req.headers['x-session-id'] as string || 'anonymous';
+
+    try {
+        const row = db.prepare(`SELECT * FROM exhibitions WHERE id = ?`).get(id) as any;
+        if (!row) {
+            res.status(404).json({ success: false, error: 'Exhibited art not found' });
+            return;
+        }
+
+        // Check permission: Must be the creator (matching session_id) OR an admin session
+        const isCreator = row.session_id === sessionId;
+        const isAdmin = sessionId.toLowerCase().includes('admin') || sessionId === 'admin';
+
+        if (!isCreator && !isAdmin) {
+            res.status(403).json({ success: false, error: 'Forbidden: You do not have permission to delete this artwork' });
+            return;
+        }
+
+        db.prepare(`DELETE FROM exhibitions WHERE id = ?`).run(id);
+
+        logEvent('EXHIBIT_DELETE', sessionId, id, { artName: row.name });
+        res.json({ success: true, message: 'Artwork deleted successfully' });
+    } catch (err) {
+        console.error('Failed to delete artwork:', err);
+        res.status(500).json({ success: false, error: 'Database error' });
+    }
+});
+
 export default router;

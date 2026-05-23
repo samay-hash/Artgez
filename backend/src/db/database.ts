@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import Database, { type Database as SQLiteDatabase } from 'better-sqlite3';
 import path from 'path';
 import dotenv from 'dotenv';
 
@@ -7,7 +7,7 @@ dotenv.config();
 const DB_PATH = process.env.DB_PATH || './artop.db';
 const dbPath = path.resolve(process.cwd(), DB_PATH);
 
-export const db = new Database(dbPath);
+export const db: SQLiteDatabase = new Database(dbPath);
 
 // Enable WAL mode for better performance
 db.pragma('journal_mode = WAL');

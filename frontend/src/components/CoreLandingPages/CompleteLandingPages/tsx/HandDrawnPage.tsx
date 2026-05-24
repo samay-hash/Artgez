@@ -377,6 +377,7 @@ const FAQItem = ({ faq, index, isOpen, toggleOpen }: { faq: {q: string, a: strin
 
 export default function ArtopPage() {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
+    const [soulHovered, setSoulHovered] = useState(false);
     const toggleFaq = (index: number) => {
         setOpenFaq(openFaq === index ? null : index);
     };
@@ -442,21 +443,94 @@ export default function ArtopPage() {
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.7, delay: 0.1 }}
-                        className="mb-6 max-w-4xl text-5xl font-black leading-[1.05] tracking-tight md:text-7xl lg:text-8xl"
+                        className="mb-6 max-w-4xl font-hero-display text-5xl font-normal leading-[1.15] tracking-wide text-[#3c3535] md:text-7xl lg:text-8xl"
                     >
-                        Sketch the Soul.
+                        Sketch the{' '}
+                        {/* ── Soul → Art swap — layout-stable blur crossfade ── */}
+                        <span
+                            className="relative inline-block cursor-default select-none"
+                            onMouseEnter={() => setSoulHovered(true)}
+                            onMouseLeave={() => setSoulHovered(false)}
+                        >
+                            {/* Invisible "Soul" holds the width — never shifts layout */}
+                            <span aria-hidden className="invisible">Soul</span>
+
+                            <AnimatePresence mode="wait" initial={false}>
+                                {soulHovered ? (
+                                    <motion.span
+                                        key="art"
+                                        initial={{ opacity: 0, filter: 'blur(12px)' }}
+                                        animate={{ opacity: 1, filter: 'blur(0px)' }}
+                                        exit={{ opacity: 0, filter: 'blur(12px)' }}
+                                        transition={{ duration: 0.22, ease: 'easeInOut' }}
+                                        className="absolute inset-0 text-sky-500"
+                                    >
+                                        Art
+                                    </motion.span>
+                                ) : (
+                                    <motion.span
+                                        key="soul"
+                                        initial={{ opacity: 0, filter: 'blur(12px)' }}
+                                        animate={{ opacity: 1, filter: 'blur(0px)' }}
+                                        exit={{ opacity: 0, filter: 'blur(12px)' }}
+                                        transition={{ duration: 0.22, ease: 'easeInOut' }}
+                                        className="absolute inset-0"
+                                    >
+                                        Soul
+                                    </motion.span>
+                                )}
+                            </AnimatePresence>
+
+                            {/* Slide-in underline */}
+                            <span
+                                className="absolute -bottom-1 left-0 h-[2px] rounded-full transition-all duration-300"
+                                style={{
+                                    width: soulHovered ? '100%' : '0%',
+                                    backgroundColor: '#0ea5e9',
+                                }}
+                            />
+                        </span>
+                        {'.'}
                         <br />
-                        <Highlight color="#a5f3fc">Before You Hold.</Highlight>
+                        <Highlight color="#a5f3fc">
+                            Before You{' '}
+                            {/* ── Hold hover underline ── */}
+                            <span className="relative inline-block cursor-default group/hold">
+                                Hold
+                                <span className="absolute -bottom-1 left-0 h-[2px] w-0 rounded-full bg-[#3c3535] transition-all duration-300 ease-out group-hover/hold:w-full" />
+                            </span>
+                            {'.'}
+                        </Highlight>
                     </motion.h1>
 
                     <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.25 }}
                         className="mb-10 max-w-2xl text-lg text-gray-600 font-medium leading-relaxed md:text-xl"
+                        initial="hidden"
+                        animate="visible"
+                        aria-label="Try pencils, brushes & paper textures virtually — then buy exactly what works for your art style. No more guessing. No more wasted money."
                     >
-                        Try pencils, brushes & paper textures virtually — then buy exactly what works for your art style.
-                        No more guessing. No more wasted money.
+                        {[
+                            "Try", "pencils,", "brushes", "&", "paper", "textures",
+                            "virtually", "—", "then", "buy", "exactly", "what", "works",
+                            "for", "your", "art", "style.", "No", "more", "guessing.",
+                            "No", "more", "wasted", "money."
+                        ].map((word, i) => (
+                            <motion.span
+                                key={i}
+                                variants={{
+                                    hidden: { opacity: 0, filter: 'blur(10px)', y: 6 },
+                                    visible: { opacity: 1, filter: 'blur(0px)', y: 0 },
+                                }}
+                                transition={{
+                                    duration: 0.55,
+                                    delay: 0.55 + i * 0.045,
+                                    ease: [0.25, 0.4, 0.25, 1],
+                                }}
+                                style={{ display: 'inline-block', marginRight: '0.32em' }}
+                            >
+                                {word}
+                            </motion.span>
+                        ))}
                     </motion.p>
 
                     <motion.div
@@ -529,13 +603,24 @@ export default function ArtopPage() {
                             <Sparkles size={12} className="text-cyan-500" /> See It In Action
                         </motion.div>
                         <motion.h2
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
+                            className="font-hero-display text-4xl font-normal md:text-6xl tracking-wide text-[#3c3535]"
+                            initial="hidden"
+                            whileInView="visible"
                             viewport={{ once: true }}
-                            className="text-4xl font-black md:text-6xl tracking-tight"
                         >
-                            How it <Highlight color="#a5f3fc">Works</Highlight>
+                            {["How", "it", "Works"].map((word, i) => (
+                                <motion.span
+                                    key={i}
+                                    variants={{
+                                        hidden: { opacity: 0, filter: 'blur(12px)', rotateX: -40, y: 20 },
+                                        visible: { opacity: 1, filter: 'blur(0px)', rotateX: 0, y: 0 },
+                                    }}
+                                    transition={{ duration: 0.6, delay: 0.15 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                                    style={{ display: 'inline-block', marginRight: '0.3em', transformOrigin: 'top center' }}
+                                >
+                                    {i === 2 ? <Highlight color="#a5f3fc">{word}</Highlight> : word}
+                                </motion.span>
+                            ))}
                         </motion.h2>
                         <motion.p
                             initial={{ opacity: 0, y: 15 }}
@@ -558,6 +643,11 @@ export default function ArtopPage() {
                                 video: '/videos/demo1.mp4',
                                 color: '#a5f3fc',
                                 label: 'PENCIL DNA',
+                                // card 01: rise from below + blur
+                                cardInit: { opacity: 0, y: 60, filter: 'blur(12px)' },
+                                cardAnimate: { opacity: 1, y: 0, filter: 'blur(0px)' },
+                                titleInit: { opacity: 0, x: -20, filter: 'blur(8px)' },
+                                titleAnimate: { opacity: 1, x: 0, filter: 'blur(0px)' },
                             },
                             {
                                 num: '02',
@@ -566,6 +656,11 @@ export default function ArtopPage() {
                                 video: '/videos/demo2.mp4',
                                 color: '#bae6fd',
                                 label: 'SKETCH LAB',
+                                // card 02: scale up from center + blur
+                                cardInit: { opacity: 0, scale: 0.82, filter: 'blur(16px)' },
+                                cardAnimate: { opacity: 1, scale: 1, filter: 'blur(0px)' },
+                                titleInit: { opacity: 0, y: 16, filter: 'blur(8px)' },
+                                titleAnimate: { opacity: 1, y: 0, filter: 'blur(0px)' },
                             },
                             {
                                 num: '03',
@@ -574,26 +669,34 @@ export default function ArtopPage() {
                                 video: '/videos/demo3.mp4',
                                 color: '#e0f2fe',
                                 label: 'SUPPLY SHOP',
+                                // card 03: slide in from right + blur
+                                cardInit: { opacity: 0, x: 60, filter: 'blur(12px)' },
+                                cardAnimate: { opacity: 1, x: 0, filter: 'blur(0px)' },
+                                titleInit: { opacity: 0, x: 20, filter: 'blur(8px)' },
+                                titleAnimate: { opacity: 1, x: 0, filter: 'blur(0px)' },
                             },
                         ].map((step, i) => (
                             <motion.div
                                 key={step.num}
-                                initial={{ opacity: 0, y: 50 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.15, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                                initial={step.cardInit}
+                                whileInView={step.cardAnimate}
+                                transition={{ delay: i * 0.18, duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
                                 viewport={{ once: true }}
                                 className="group relative flex flex-col"
                             >
                                 {/* Video Container */}
-                                <div className="relative overflow-hidden rounded-2xl border border-black/10 bg-white/50 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-500 group-hover:shadow-[0_16px_50px_rgba(0,0,0,0.12)] group-hover:scale-[1.02]">
+                                <div className="relative overflow-hidden rounded-2xl border border-black/8 bg-white/60 backdrop-blur-md shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-all duration-500 group-hover:shadow-[0_20px_60px_rgba(0,0,0,0.13)] group-hover:-translate-y-2">
                                     {/* Label Badge */}
-                                    <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 rounded-full bg-black/80 backdrop-blur-md px-3 py-1.5 shadow-lg">
+                                    <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 rounded-full bg-black/75 backdrop-blur-md px-3 py-1.5 shadow-lg">
                                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                        <span className="text-[9px] font-black text-white tracking-widest">{step.label}</span>
+                                        <span className="text-[9px] font-semibold text-white tracking-[0.18em]">{step.label}</span>
                                     </div>
 
-                                    {/* Step Number Badge */}
-                                    <div className="absolute top-4 left-4 z-20 flex items-center justify-center h-7 w-7 rounded border border-white/20 bg-black/40 backdrop-blur-md text-[10px] font-black text-white shadow-lg">
+                                    {/* Step Number Badge — colored accent */}
+                                    <div
+                                        className="absolute top-4 left-4 z-20 flex items-center justify-center h-7 w-7 rounded-lg text-[11px] font-bold text-black/70 shadow-sm"
+                                        style={{ backgroundColor: step.color }}
+                                    >
                                         {step.num}
                                     </div>
 
@@ -603,15 +706,37 @@ export default function ArtopPage() {
                                         loop
                                         muted
                                         playsInline
-                                        className="w-full aspect-[16/10] object-cover"
+                                        className="w-full aspect-[16/10] object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                                         src={step.video}
+                                    />
+
+                                    {/* Bottom color bar */}
+                                    <div
+                                        className="absolute bottom-0 left-0 right-0 h-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                        style={{ backgroundColor: step.color }}
                                     />
                                 </div>
 
                                 {/* Text Content Below */}
                                 <div className="mt-5 px-1">
-                                    <h3 className="text-xl font-bold tracking-tight">{step.title}</h3>
-                                    <p className="mt-2 text-gray-500 text-sm leading-relaxed">{step.desc}</p>
+                                    <motion.h3
+                                        className="font-hero-display text-xl font-normal text-[#3c3535] leading-snug"
+                                        initial={step.titleInit}
+                                        whileInView={step.titleAnimate}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.18 + 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                                    >
+                                        {step.title}
+                                    </motion.h3>
+                                    <motion.p
+                                        className="mt-2 text-gray-400 text-sm leading-relaxed"
+                                        initial={{ opacity: 0, y: 8 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.18 + 0.45, duration: 0.55, ease: 'easeOut' }}
+                                    >
+                                        {step.desc}
+                                    </motion.p>
                                 </div>
                             </motion.div>
                         ))}
@@ -626,9 +751,15 @@ export default function ArtopPage() {
                         <div className="mb-4 inline-flex items-center gap-2 border border-black/20 bg-white px-4 py-2 text-xs font-bold uppercase tracking-widest">
                             <Zap size={12} className="text-yellow-500" /> Live Demo — Draw Right Now
                         </div>
-                        <h2 className="text-4xl font-black md:text-5xl">
+                        <motion.h2
+                            className="font-hero-display text-4xl font-normal md:text-5xl text-[#3c3535]"
+                            initial={{ opacity: 0, x: -40, filter: 'blur(14px)' }}
+                            whileInView={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+                        >
                             The <Highlight color="#a5f3fc">Sketch Lab</Highlight>
-                        </h2>
+                        </motion.h2>
                         <p className="mt-4 max-w-xl mx-auto text-gray-600">
                             Pick a pencil. Switch the paper. Feel the actual difference between a 4H and a 6B — right here in your browser.
                         </p>
@@ -668,9 +799,15 @@ export default function ArtopPage() {
             <section className="relative z-10 px-6 py-28">
                 <div className="mx-auto max-w-6xl">
                     <div className="mb-16 text-center">
-                        <h2 className="text-4xl font-black md:text-5xl">
+                        <motion.h2
+                            className="font-hero-display text-4xl font-normal md:text-5xl text-[#3c3535]"
+                            initial={{ opacity: 0, scale: 0.88, filter: 'blur(16px)' }}
+                            whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
+                        >
                             Why <Highlight color="#bae6fd">Artgez</Highlight>
-                        </h2>
+                        </motion.h2>
                         <p className="mt-4 text-gray-600 text-lg max-w-xl mx-auto">
                             Tools built for how artists actually think — not how supply stores want to sell.
                         </p>
@@ -710,9 +847,15 @@ export default function ArtopPage() {
             <section id="pricing" className="relative z-10 px-6 py-28">
                 <div className="mx-auto max-w-4xl">
                     <div className="mb-16 text-center">
-                        <h2 className="text-4xl font-black md:text-5xl">
+                        <motion.h2
+                            className="font-hero-display text-4xl font-normal md:text-5xl text-[#3c3535] overflow-hidden"
+                            initial={{ clipPath: 'inset(0 100% 0 0)', opacity: 0, filter: 'blur(8px)' }}
+                            whileInView={{ clipPath: 'inset(0 0% 0 0)', opacity: 1, filter: 'blur(0px)' }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                        >
                             Simple <Highlight color="#bbf7d0">Pricing.</Highlight>
-                        </h2>
+                        </motion.h2>
                         <p className="mt-4 text-gray-600">Start free. Upgrade when you're ready.</p>
                     </div>
 
@@ -772,10 +915,27 @@ export default function ArtopPage() {
             <section className="relative z-10 bg-[#fdfbf7] py-28 px-6 md:px-24 text-center text-black border-y border-black/5">
                 <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }} />
                 <div className="relative z-10">
-                    <h2 className="mb-4 text-4xl font-black md:text-6xl tracking-tight">
-                        Stop guessing.<br />
-                        <span className="text-sky-500">Start drawing right.</span>
-                    </h2>
+                    <motion.h2
+                        className="font-hero-display mb-4 text-4xl font-normal md:text-6xl tracking-wide text-[#3c3535]"
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true }}
+                    >
+                        {["Stop guessing.", "Start drawing right."].map((line, i) => (
+                            <motion.span
+                                key={i}
+                                variants={{
+                                    hidden: { opacity: 0, y: 50, filter: 'blur(10px)' },
+                                    visible: { opacity: 1, y: 0, filter: 'blur(0px)' },
+                                }}
+                                transition={{ duration: 0.7, delay: i * 0.2, ease: [0.22, 1, 0.36, 1] }}
+                                style={{ display: 'block' }}
+                                className={i === 1 ? 'text-sky-500' : ''}
+                            >
+                                {line}
+                            </motion.span>
+                        ))}
+                    </motion.h2>
                     <p className="mb-10 text-gray-500 text-xl max-w-md mx-auto font-medium">Join 1,000+ artists who trial before they buy.</p>
                     <div className="flex flex-wrap justify-center gap-4">
                         <Link href="/app" className="group relative flex items-center gap-3 rounded-full bg-black px-10 py-5 text-sm font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-sky-500 shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
@@ -807,7 +967,15 @@ export default function ArtopPage() {
             <section className="relative z-10 bg-[#fdfbf7] py-32 px-6">
                 <div className="mx-auto max-w-3xl">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl font-black md:text-5xl tracking-tight mb-4">Frequently Asked Questions</h2>
+                        <motion.h2
+                            className="font-hero-display text-3xl font-normal md:text-5xl tracking-wide mb-4 text-[#3c3535]"
+                            initial={{ opacity: 0, y: 30, filter: 'blur(12px)' }}
+                            whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, ease: 'easeOut' }}
+                        >
+                            Frequently Asked Questions
+                        </motion.h2>
                         <p className="text-gray-500">Everything you need to know about Artgez.</p>
                     </div>
                     <div className="flex flex-col gap-4">
